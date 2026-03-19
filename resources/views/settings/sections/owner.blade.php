@@ -39,7 +39,7 @@
         
         <!-- Préférences de notification propriétaire -->
         <h6 class="mb-3">Préférences spécifiques</h6>
-        <form action="{{ route('settings.owner.preferences.update') }}" method="POST">
+        <form action="{{ route('settings.index') }}" method="POST">
             @csrf
             @method('PUT')
             <div class="mb-3">

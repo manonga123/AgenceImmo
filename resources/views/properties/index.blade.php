@@ -741,11 +741,17 @@
             {{ number_format($property->price, 0, ',', ' ') }} Ar
           </div>
           <div class="prop-actions">
+
+            {{-- Bouton Voir : toujours visible --}}
             <a href="{{ route('properties.show', $property->id) }}"
                class="btn-act view" title="Voir">
               <i class="bi bi-eye"></i>
             </a>
 
+            {{--
+              Boutons Modifier & Supprimer :
+              Visibles uniquement pour l'admin OU le créateur de la propriété
+            --}}
             @if(Auth::user()->role == 'admin' || Auth::id() == $property->owner_id)
             <a href="{{ route('properties.edit', $property->id) }}"
                class="btn-act edit" title="Modifier">
@@ -762,6 +768,7 @@
               </button>
             </form>
             @endif
+
           </div>
         </div>
 
@@ -825,8 +832,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    const searchInput   = document.getElementById('search-input');
-    const grid          = document.getElementById('properties-grid');
+    const searchInput    = document.getElementById('search-input');
+    const grid           = document.getElementById('properties-grid');
     const paginationWrap = document.getElementById('pagination-wrap');
     const paginationInfo = document.getElementById('pagination-info');
 
@@ -834,7 +841,7 @@
     if (!searchInput || !grid) return;
 
     // Récupère toutes les cartes une seule fois
-    const allCards = Array.from(grid.querySelectorAll('.property-card'));
+    const allCards    = Array.from(grid.querySelectorAll('.property-card'));
     const totalServer = allCards.length;
 
     // Place le curseur à la fin après rechargement de page

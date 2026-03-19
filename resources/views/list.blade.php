@@ -7,8 +7,6 @@
     /* ══════════════════════════════════════════
        DESIGN SYSTEM — calqué sur la sidebar
     ══════════════════════════════════════════ */
-    /* Les variables --gold, --bg, --surface*, --border, --text* sont déjà
-       définies dans header.blade.php et disponibles ici. */
 
     /* ── Hero Section ── */
     .hero-section {
@@ -38,7 +36,6 @@
         );
     }
 
-    /* Grain identique au body */
     .hero-section::after {
         content: '';
         position: absolute; inset: 0;
@@ -127,7 +124,6 @@
     .search-button:hover {
         filter: brightness(1.12);
         box-shadow: 0 0 20px rgba(197,160,85,0.35);
-        background-color: rgba(197,160,85,0.22);
     }
 
     /* ── Filters Section ── */
@@ -288,9 +284,7 @@
     }
 
     .property-card:hover .carousel-control-prev,
-    .property-card:hover .carousel-control-next {
-        opacity: 1;
-    }
+    .property-card:hover .carousel-control-next { opacity: 1; }
 
     .carousel-control-prev:hover,
     .carousel-control-next:hover {
@@ -502,6 +496,8 @@
         justify-content: center;
         gap: 7px;
         transition: all 0.25s ease;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
     }
 
     .btn-view-details:hover {
@@ -543,7 +539,6 @@
         margin: 40px 0;
     }
 
-    /* Override Bootstrap pagination */
     .pagination .page-link {
         background: var(--surface2);
         border-color: var(--border);
@@ -621,12 +616,8 @@
     }
 
     .btn-empty-action span { position: relative; z-index: 1; }
-
     .btn-empty-action:hover::before { opacity: 1; }
-    .btn-empty-action:hover {
-        color: #080a0f;
-        box-shadow: 0 0 22px rgba(197,160,85,0.3);
-    }
+    .btn-empty-action:hover { color: #080a0f; box-shadow: 0 0 22px rgba(197,160,85,0.3); }
 
     /* ── Results count ── */
     .results-count {
@@ -665,7 +656,7 @@
         gap: 8px;
     }
 
-    /* ── Modal dark ── */
+    /* ── Modal visit request dark ── */
     .modal-content {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -688,19 +679,10 @@
     }
 
     .modal-header .modal-title i { color: var(--gold); }
-
     .modal-body { padding: 24px; }
+    .modal-footer { border-top: 1px solid var(--border); padding: 16px 24px; }
 
-    .modal-footer {
-        border-top: 1px solid var(--border);
-        padding: 16px 24px;
-    }
-
-    .modal .form-label {
-        font-size: 13px;
-        color: var(--text-soft);
-        margin-bottom: 6px;
-    }
+    .modal .form-label { font-size: 13px; color: var(--text-soft); margin-bottom: 6px; }
 
     .modal .form-control,
     .modal .form-select {
@@ -723,11 +705,7 @@
     }
 
     .modal .form-control::placeholder { color: var(--text-muted); }
-
-    .modal .form-select option {
-        background: var(--surface2);
-        color: var(--text);
-    }
+    .modal .form-select option { background: var(--surface2); color: var(--text); }
 
     .modal .btn-secondary {
         background: transparent;
@@ -739,10 +717,7 @@
         transition: all 0.2s ease;
     }
 
-    .modal .btn-secondary:hover {
-        border-color: var(--border-glow);
-        color: var(--text);
-    }
+    .modal .btn-secondary:hover { border-color: var(--border-glow); color: var(--text); }
 
     .modal .btn-primary {
         background: linear-gradient(135deg, var(--gold), var(--gold-light));
@@ -756,16 +731,8 @@
         transition: all 0.25s ease;
     }
 
-    .modal .btn-primary:hover {
-        filter: brightness(1.1);
-        box-shadow: 0 0 18px rgba(197,160,85,0.3);
-    }
-
-    .modal .btn-primary:disabled {
-        opacity: 0.4;
-        filter: none;
-        box-shadow: none;
-    }
+    .modal .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 0 18px rgba(197,160,85,0.3); }
+    .modal .btn-primary:disabled { opacity: 0.4; filter: none; box-shadow: none; }
 
     .modal-property-title {
         color: var(--text-soft);
@@ -783,8 +750,564 @@
     }
 
     .modal .alert-link { color: var(--gold-light); }
-
     .btn-close { filter: invert(0.5) brightness(1.4); }
+
+    /* ════════════════════════════════════════════════
+       MODAL DÉTAIL PROPRIÉTÉ (PDM)
+    ════════════════════════════════════════════════ */
+    .property-detail-modal .modal-dialog { max-width: 1100px; }
+
+    .pdm-content {
+        background: var(--surface);
+        border: 1px solid var(--border-glow);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow:
+            0 40px 100px rgba(0,0,0,0.8),
+            0 0 0 1px rgba(197,160,85,0.08),
+            0 0 80px rgba(197,160,85,0.05);
+        position: relative;
+        color: var(--text);
+    }
+
+    /* Layout 2 colonnes */
+    .pdm-layout {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        min-height: 620px;
+    }
+
+    /* ── Bouton fermer ── */
+    .pdm-close {
+        position: absolute;
+        top: 16px; right: 16px;
+        z-index: 20;
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(8,10,15,0.9);
+        color: var(--text-soft);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        backdrop-filter: blur(12px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        font-size: 14px;
+    }
+
+    .pdm-close:hover {
+        border-color: var(--border-glow);
+        color: var(--gold);
+        background: rgba(197,160,85,0.12);
+        transform: rotate(90deg) scale(1.1);
+    }
+
+    /* ═══════════════════
+       GALERIE
+    ═══════════════════ */
+    .pdm-gallery {
+        position: relative;
+        background: #020304;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pdm-carousel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pdm-carousel .carousel-inner {
+        flex: 1;
+        height: 0; /* force flex child to fill */
+        min-height: 460px;
+    }
+
+    .pdm-carousel .carousel-item { height: 100%; }
+
+    .pdm-main-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .pdm-gallery:hover .pdm-main-image { transform: scale(1.025); }
+
+    /* Gradient en bas de l'image */
+    .pdm-gallery::after {
+        content: '';
+        position: absolute;
+        bottom: 90px; left: 0; right: 0;
+        height: 140px;
+        background: linear-gradient(to top, rgba(2,3,4,0.9) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    /* No image */
+    .pdm-no-image {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        color: var(--text-muted);
+        background: var(--surface2);
+        min-height: 460px;
+    }
+
+    .pdm-no-image i { font-size: 64px; opacity: 0.4; }
+    .pdm-no-image span { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.5; }
+
+    /* Contrôles carousel */
+    .pdm-ctrl-prev, .pdm-ctrl-next {
+        position: absolute;
+        width: 44px; height: 44px;
+        background: rgba(8,10,15,0.88);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 50%;
+        top: 50%;
+        transform: translateY(calc(-50% - 45px));
+        display: flex; align-items: center; justify-content: center;
+        color: var(--text-soft);
+        font-size: 17px;
+        transition: all 0.25s ease;
+        opacity: 0;
+        z-index: 5;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .pdm-ctrl-prev { left: 16px; }
+    .pdm-ctrl-next { right: 16px; }
+
+    .pdm-gallery:hover .pdm-ctrl-prev,
+    .pdm-gallery:hover .pdm-ctrl-next { opacity: 1; }
+
+    .pdm-ctrl-prev:hover,
+    .pdm-ctrl-next:hover {
+        border-color: var(--border-glow);
+        background: rgba(197,160,85,0.15);
+        color: var(--gold);
+        transform: translateY(calc(-50% - 45px)) scale(1.08);
+    }
+
+    /* Thumbnails */
+    .pdm-thumbs {
+        display: flex;
+        gap: 7px;
+        padding: 12px 16px;
+        background: rgba(4,5,8,0.98);
+        height: 90px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+        position: relative;
+        z-index: 3;
+        flex-shrink: 0;
+    }
+
+    .pdm-thumbs::-webkit-scrollbar { height: 3px; }
+    .pdm-thumbs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .pdm-thumb {
+        flex-shrink: 0;
+        width: 66px; height: 66px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+        opacity: 0.45;
+    }
+
+    .pdm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pdm-thumb:hover { opacity: 0.8; border-color: rgba(197,160,85,0.4); transform: scale(1.04); }
+    .pdm-thumb.active { border-color: var(--gold); opacity: 1; }
+
+    /* Badges galerie */
+    .pdm-gallery-badges {
+        position: absolute;
+        top: 16px; left: 16px;
+        display: flex; gap: 7px;
+        z-index: 10;
+    }
+
+    .pdm-badge {
+        padding: 5px 13px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        backdrop-filter: blur(16px);
+        display: flex; align-items: center; gap: 5px;
+    }
+
+    .pdm-badge-type {
+        background: rgba(197,160,85,0.22);
+        color: var(--gold-light);
+        border: 1px solid rgba(197,160,85,0.35);
+    }
+
+    .pdm-badge-status.disponible {
+        background: rgba(61,185,122,0.2);
+        color: #6ee8aa;
+        border: 1px solid rgba(61,185,122,0.32);
+    }
+
+    .pdm-badge-status.vendu {
+        background: rgba(217,95,95,0.2);
+        color: #f09090;
+        border: 1px solid rgba(217,95,95,0.32);
+    }
+
+    .pdm-badge-status.loue {
+        background: rgba(197,160,85,0.16);
+        color: var(--gold);
+        border: 1px solid rgba(197,160,85,0.28);
+    }
+
+    /* Compteur photos */
+    .pdm-photo-count {
+        position: absolute;
+        z-index: 10;
+        bottom: 96px; right: 16px;
+        background: rgba(8,10,15,0.85);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: var(--text-muted);
+        padding: 5px 13px;
+        border-radius: 20px;
+        font-size: 11px;
+        display: flex; align-items: center; gap: 5px;
+        backdrop-filter: blur(12px);
+        letter-spacing: 0.04em;
+    }
+
+    /* ═══════════════════
+       INFO (droite)
+    ═══════════════════ */
+    .pdm-info {
+        display: flex;
+        flex-direction: column;
+        padding: 36px 30px 28px;
+        overflow-y: auto;
+        max-height: 620px;
+        background: var(--surface);
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+        border-left: 1px solid var(--border);
+    }
+
+    .pdm-info::-webkit-scrollbar { width: 3px; }
+    .pdm-info::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Prix */
+    .pdm-price-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        gap: 12px;
+    }
+
+    .pdm-price {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 40px;
+        font-weight: 700;
+        color: var(--gold-light);
+        letter-spacing: 0.01em;
+        line-height: 1;
+    }
+
+    .pdm-currency {
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--gold);
+        margin-left: 6px;
+        opacity: 0.8;
+    }
+
+    /* Bouton favori */
+    .pdm-fav-btn {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--surface2);
+        color: var(--text-muted);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .pdm-fav-btn:hover {
+        border-color: rgba(217,95,95,0.5);
+        color: #f09090;
+        background: rgba(217,95,95,0.1);
+        transform: scale(1.15);
+    }
+
+    .pdm-fav-btn.active {
+        border-color: rgba(217,95,95,0.45);
+        color: #f09090;
+        background: rgba(217,95,95,0.15);
+    }
+
+    /* Titre */
+    .pdm-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 27px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 14px;
+        line-height: 1.3;
+        letter-spacing: 0.02em;
+    }
+
+    /* Localisation */
+    .pdm-location {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin-bottom: 4px;
+    }
+
+    .pdm-location > i { color: var(--gold); font-size: 15px; margin-top: 2px; flex-shrink: 0; }
+    .pdm-city { display: block; color: var(--text-soft); font-size: 14px; font-weight: 500; }
+    .pdm-address { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+
+    /* Séparateur décoratif */
+    .pdm-divider {
+        display: flex;
+        align-items: center;
+        margin: 22px 0;
+        gap: 10px;
+    }
+
+    .pdm-divider::before,
+    .pdm-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(197,160,85,0.25), transparent);
+    }
+
+    .pdm-divider-gem {
+        color: var(--gold);
+        font-size: 9px;
+        opacity: 0.7;
+    }
+
+    /* Stats */
+    .pdm-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+
+    .pdm-stat {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px 10px;
+        text-align: center;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pdm-stat::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 50%; right: 50%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        transition: all 0.3s ease;
+    }
+
+    .pdm-stat:hover {
+        border-color: var(--border-glow);
+        background: rgba(197,160,85,0.04);
+    }
+
+    .pdm-stat:hover::before {
+        left: 20%; right: 20%;
+    }
+
+    .pdm-stat-icon {
+        font-size: 19px;
+        color: var(--gold);
+        margin-bottom: 7px;
+        opacity: 0.85;
+    }
+
+    .pdm-stat-val {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1;
+    }
+
+    .pdm-stat-label {
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-top: 4px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    /* Description */
+    .pdm-description-block { margin-bottom: 20px; }
+
+    .pdm-section-title {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--gold);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        opacity: 0.85;
+    }
+
+    .pdm-description {
+        color: var(--text-soft);
+        font-size: 13.5px;
+        line-height: 1.75;
+        margin: 0;
+    }
+
+    /* Détails grid */
+    .pdm-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        margin-bottom: 26px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--border);
+    }
+
+    .pdm-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 13px 16px;
+        background: var(--surface2);
+        transition: background 0.2s ease;
+    }
+
+    .pdm-detail-item:hover { background: rgba(197,160,85,0.04); }
+
+    .pdm-detail-label {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-muted);
+        font-weight: 700;
+    }
+
+    .pdm-detail-val {
+        font-size: 13px;
+        color: var(--text-soft);
+        font-weight: 500;
+    }
+
+    .pdm-status-disponible { color: #6ee8aa !important; }
+    .pdm-status-vendu      { color: #f09090 !important; }
+    .pdm-status-loue       { color: var(--gold) !important; }
+
+    /* Actions */
+    .pdm-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: auto;
+        padding-top: 4px;
+    }
+
+    .pdm-btn-primary {
+        flex: 1.4;
+        padding: 13px 16px;
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+        color: #080a0f;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        display: flex; align-items: center; justify-content: center; gap: 7px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .pdm-btn-primary:hover {
+        filter: brightness(1.12);
+        box-shadow: 0 6px 24px rgba(197,160,85,0.35);
+        transform: translateY(-2px);
+        color: #080a0f;
+    }
+
+    .pdm-btn-secondary {
+        flex: 1.4;
+        padding: 13px 16px;
+        background: rgba(197,160,85,0.07);
+        color: var(--gold);
+        border: 1px solid rgba(197,160,85,0.28);
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        display: flex; align-items: center; justify-content: center; gap: 7px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .pdm-btn-secondary:hover {
+        background: rgba(197,160,85,0.13);
+        border-color: rgba(197,160,85,0.5);
+        color: var(--gold-light);
+        transform: translateY(-1px);
+    }
+
+    .pdm-btn-outline {
+        flex: 1;
+        padding: 13px 14px;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .pdm-btn-outline:hover {
+        border-color: var(--border-glow);
+        color: var(--gold);
+        background: var(--gold-dim);
+    }
 
     /* ── Animations ── */
     @keyframes fadeInUp {
@@ -792,16 +1315,22 @@
         to   { opacity: 1; transform: translateY(0); }
     }
 
-    .property-card {
-        animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
+    .property-card { animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
     .property-card:nth-child(1) { animation-delay: 0.04s; }
     .property-card:nth-child(2) { animation-delay: 0.09s; }
     .property-card:nth-child(3) { animation-delay: 0.14s; }
     .property-card:nth-child(4) { animation-delay: 0.18s; }
     .property-card:nth-child(5) { animation-delay: 0.22s; }
     .property-card:nth-child(6) { animation-delay: 0.26s; }
+
+    @keyframes pdmSlideIn {
+        from { opacity: 0; transform: scale(0.96) translateY(16px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .property-detail-modal.show .pdm-content {
+        animation: pdmSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
 
     /* ── Responsive ── */
     @media (max-width: 992px) {
@@ -810,6 +1339,22 @@
         .filters-row { flex-direction: column; align-items: stretch; }
         .sort-select { width: 100%; }
         .properties-grid { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+
+        .pdm-layout { grid-template-columns: 1fr; }
+        .pdm-carousel .carousel-inner { min-height: 300px; }
+        .pdm-gallery::after { bottom: 90px; }
+        .pdm-info { max-height: none; border-left: none; border-top: 1px solid var(--border); }
+    }
+
+    @media (max-width: 768px) {
+        .property-detail-modal .modal-dialog { margin: 10px; }
+        .pdm-info { padding: 24px 20px; }
+        .pdm-price { font-size: 32px; }
+        .pdm-title { font-size: 22px; }
+        .pdm-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .pdm-actions { flex-wrap: wrap; }
+        .pdm-btn-primary, .pdm-btn-secondary { flex: 1; min-width: calc(50% - 5px); }
+        .pdm-btn-outline { flex: 1 1 100%; }
     }
 
     @media (max-width: 576px) {
@@ -822,13 +1367,17 @@
         .filter-tab { flex: 1; justify-content: center; }
         .properties-grid { grid-template-columns: 1fr; gap: 16px; }
         .property-actions { flex-direction: column; }
+        .pdm-thumbs { height: 72px; }
+        .pdm-thumb { width: 56px; height: 56px; }
     }
 </style>
 @endsection
 
 @section('content')
 
-<!-- Hero Section -->
+<!-- ══════════════════════════════════════════
+     Hero Section
+══════════════════════════════════════════ -->
 <div class="hero-section">
     <div class="hero-background"></div>
     <div class="hero-overlay"></div>
@@ -860,7 +1409,9 @@
     </div>
 </div>
 
-<!-- Filters Section -->
+<!-- ══════════════════════════════════════════
+     Filters Section
+══════════════════════════════════════════ -->
 <div class="filters-section">
     <div class="filters-row">
         <div class="filter-tabs">
@@ -895,7 +1446,7 @@
             @endif
             <select class="sort-select" name="sort" id="sortBy" onchange="document.getElementById('sortForm').submit()">
                 <option value="" {{ !request('sort') ? 'selected' : '' }}>Plus récentes</option>
-                <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Prix croissant</option>
+                <option value="price_asc"  {{ request('sort') == 'price_asc'  ? 'selected' : '' }}>Prix croissant</option>
                 <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Prix décroissant</option>
             </select>
         </form>
@@ -908,13 +1459,15 @@
     @if(request('search')) pour « <em>{{ request('search') }}</em> » @endif
 </div>
 
-<!-- Properties Grid -->
+<!-- ══════════════════════════════════════════
+     Properties Grid
+══════════════════════════════════════════ -->
 @if($properties->count() > 0)
 <div class="properties-grid">
     @foreach($properties as $property)
     <div class="property-card">
 
-        <!-- Image Carousel -->
+        <!-- ── Image Carousel ── -->
         <div class="property-image-wrapper">
             @if($property->images->count() > 0)
             <div id="carousel{{ $property->id }}" class="carousel slide">
@@ -928,10 +1481,12 @@
                     @endforeach
                 </div>
                 @if($property->images->count() > 1)
-                <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ $property->id }}" data-bs-slide="prev">
+                <button class="carousel-control-prev" type="button"
+                        data-bs-target="#carousel{{ $property->id }}" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon"></span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ $property->id }}" data-bs-slide="next">
+                <button class="carousel-control-next" type="button"
+                        data-bs-target="#carousel{{ $property->id }}" data-bs-slide="next">
                     <span class="carousel-control-next-icon"></span>
                 </button>
                 @endif
@@ -952,9 +1507,7 @@
 
             <!-- Favorite Button -->
             @auth
-                @php
-                    $isFavorite = $property->favorites->where('user_id', auth()->id())->count() > 0;
-                @endphp
+                @php $isFavorite = $property->favorites->where('user_id', auth()->id())->count() > 0; @endphp
                 <form action="{{ route('properties.favorite.toggle', $property->id) }}" method="POST" style="display:inline;">
                     @csrf
                     <button type="submit"
@@ -964,7 +1517,7 @@
                     </button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="favorite-button" title="Connectez-vous pour ajouter aux favoris">
+                <a href="{{ route('login') }}" class="favorite-button" title="Connectez-vous">
                     <i class="bi bi-heart"></i>
                 </a>
             @endauth
@@ -975,7 +1528,7 @@
             </div>
         </div>
 
-        <!-- Card Content -->
+        <!-- ── Card Content ── -->
         <div class="property-content">
             <h3 class="property-title">{{ $property->title }}</h3>
 
@@ -1016,12 +1569,17 @@
             <p class="property-description">{{ $property->description }}</p>
             @endif
 
-            <!-- Actions -->
+            <!-- ── Actions ── -->
             <div class="property-actions">
-                <a href="{{ route('properties.show', $property->id) }}" class="btn-view-details">
+
+                {{-- BOUTON VOIR DÉTAILS → ouvre la modal PDM --}}
+                <button type="button"
+                        class="btn-view-details"
+                        data-bs-toggle="modal"
+                        data-bs-target="#propertyDetailModal{{ $property->id }}">
                     <i class="bi bi-eye"></i>
                     Voir détails
-                </a>
+                </button>
 
                 @php
                     $hasUserRequest = false;
@@ -1051,7 +1609,10 @@
         </div>
     </div>
 
-    <!-- Modal Demande de visite -->
+
+    {{-- ══════════════════════════════════════════════════════════
+         MODAL — DEMANDE DE VISITE
+    ══════════════════════════════════════════════════════════ --}}
     <div class="modal fade" id="visitRequestModal{{ $property->id }}" tabindex="-1"
          aria-labelledby="visitRequestModalLabel{{ $property->id }}" aria-hidden="true">
         <div class="modal-dialog">
@@ -1123,6 +1684,251 @@
             </div>
         </div>
     </div>
+
+
+    {{-- ══════════════════════════════════════════════════════════
+         MODAL — VOIR DÉTAILS PROPRIÉTÉ
+    ══════════════════════════════════════════════════════════ --}}
+    <div class="modal fade property-detail-modal"
+         id="propertyDetailModal{{ $property->id }}"
+         tabindex="-1"
+         aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content pdm-content">
+
+                <!-- Bouton fermer flottant -->
+                <button type="button" class="pdm-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+                <div class="pdm-layout">
+
+                    {{-- ══ COLONNE GAUCHE : Galerie ══ --}}
+                    <div class="pdm-gallery">
+
+                        @if($property->images->count() > 0)
+
+                        <!-- Carousel principal -->
+                        <div id="pdmCarousel{{ $property->id }}"
+                             class="carousel slide pdm-carousel"
+                             data-bs-ride="false">
+
+                            <div class="carousel-inner">
+                                @foreach($property->images as $index => $image)
+                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                    <img src="{{ asset('storage/' . $image->image_url) }}"
+                                         class="pdm-main-image"
+                                         alt="{{ $property->title }}">
+                                </div>
+                                @endforeach
+                            </div>
+
+                            @if($property->images->count() > 1)
+                            <!-- Contrôles -->
+                            <button class="pdm-ctrl-prev carousel-control-prev"
+                                    type="button"
+                                    data-bs-target="#pdmCarousel{{ $property->id }}"
+                                    data-bs-slide="prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button class="pdm-ctrl-next carousel-control-next"
+                                    type="button"
+                                    data-bs-target="#pdmCarousel{{ $property->id }}"
+                                    data-bs-slide="next">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                            @endif
+                        </div>
+
+                        @if($property->images->count() > 1)
+                        <!-- Thumbnails -->
+                        <div class="pdm-thumbs">
+                            @foreach($property->images as $index => $image)
+                            <div class="pdm-thumb {{ $index === 0 ? 'active' : '' }}"
+                                 data-bs-target="#pdmCarousel{{ $property->id }}"
+                                 data-bs-slide-to="{{ $index }}">
+                                <img src="{{ asset('storage/' . $image->image_url) }}"
+                                     alt="Photo {{ $index + 1 }}">
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        @else
+                        <!-- Pas d'image -->
+                        <div class="pdm-no-image">
+                            <i class="bi bi-image"></i>
+                            <span>Aucune photo disponible</span>
+                        </div>
+                        @endif
+
+                        <!-- Badges -->
+                        <div class="pdm-gallery-badges">
+                            <span class="pdm-badge pdm-badge-type">{{ ucfirst($property->type) }}</span>
+                            <span class="pdm-badge pdm-badge-status {{ $property->status }}">
+                                @if($property->status === 'disponible')<i class="bi bi-check-circle-fill"></i>
+                                @elseif($property->status === 'vendu')<i class="bi bi-x-circle-fill"></i>
+                                @else<i class="bi bi-clock-fill"></i>
+                                @endif
+                                {{ ucfirst($property->status) }}
+                            </span>
+                        </div>
+
+                        <!-- Compteur photos -->
+                        @if($property->images->count() > 1)
+                        <div class="pdm-photo-count">
+                            <i class="bi bi-images"></i>
+                            {{ $property->images->count() }} photos
+                        </div>
+                        @endif
+
+                    </div>{{-- /pdm-gallery --}}
+
+
+                    {{-- ══ COLONNE DROITE : Informations ══ --}}
+                    <div class="pdm-info">
+
+                        <!-- Prix + Favori -->
+                        <div class="pdm-price-row">
+                            <div class="pdm-price">
+                                {{ number_format($property->price, 0, ',', ' ') }}
+                                <span class="pdm-currency">Ar</span>
+                            </div>
+
+                            @auth
+                                @php $isFav = $property->favorites->where('user_id', auth()->id())->count() > 0; @endphp
+                                <form action="{{ route('properties.favorite.toggle', $property->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                            class="pdm-fav-btn {{ $isFav ? 'active' : '' }}"
+                                            title="{{ $isFav ? 'Retirer des favoris' : 'Ajouter aux favoris' }}">
+                                        <i class="bi bi-heart{{ $isFav ? '-fill' : '' }}"></i>
+                                    </button>
+                                </form>
+                            @endauth
+                        </div>
+
+                        <!-- Titre -->
+                        <h2 class="pdm-title">{{ $property->title }}</h2>
+
+                        <!-- Localisation -->
+                        <div class="pdm-location">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <div>
+                                <span class="pdm-city">{{ $property->city }}</span>
+                                @if($property->address)
+                                <span class="pdm-address">{{ $property->address }}</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Séparateur -->
+                        <div class="pdm-divider">
+                            <span class="pdm-divider-gem">◆</span>
+                        </div>
+
+                        <!-- Stats -->
+                        @if($property->surface || $property->rooms || $property->bathrooms)
+                        <div class="pdm-stats">
+                            @if($property->surface)
+                            <div class="pdm-stat">
+                                <div class="pdm-stat-icon"><i class="bi bi-arrows-angle-expand"></i></div>
+                                <div class="pdm-stat-val">{{ number_format($property->surface, 0, ',', ' ') }}</div>
+                                <div class="pdm-stat-label">m² surface</div>
+                            </div>
+                            @endif
+                            @if($property->rooms)
+                            <div class="pdm-stat">
+                                <div class="pdm-stat-icon"><i class="bi bi-door-closed"></i></div>
+                                <div class="pdm-stat-val">{{ $property->rooms }}</div>
+                                <div class="pdm-stat-label">pièces</div>
+                            </div>
+                            @endif
+                            @if($property->bathrooms)
+                            <div class="pdm-stat">
+                                <div class="pdm-stat-icon"><i class="bi bi-droplet-fill"></i></div>
+                                <div class="pdm-stat-val">{{ $property->bathrooms }}</div>
+                                <div class="pdm-stat-label">salles de bain</div>
+                            </div>
+                            @endif
+                        </div>
+                        @endif
+
+                        <!-- Description -->
+                        @if($property->description)
+                        <div class="pdm-description-block">
+                            <h4 class="pdm-section-title">
+                                <i class="bi bi-card-text"></i> Description
+                            </h4>
+                            <p class="pdm-description">{{ $property->description }}</p>
+                        </div>
+                        @endif
+
+                        <!-- Détails -->
+                        <div class="pdm-details-grid">
+                            <div class="pdm-detail-item">
+                                <span class="pdm-detail-label">Type</span>
+                                <span class="pdm-detail-val">{{ ucfirst($property->type) }}</span>
+                            </div>
+                            <div class="pdm-detail-item">
+                                <span class="pdm-detail-label">Statut</span>
+                                <span class="pdm-detail-val pdm-status-{{ $property->status }}">{{ ucfirst($property->status) }}</span>
+                            </div>
+                            @if($property->city)
+                            <div class="pdm-detail-item">
+                                <span class="pdm-detail-label">Ville</span>
+                                <span class="pdm-detail-val">{{ $property->city }}</span>
+                            </div>
+                            @endif
+                            @if($property->surface)
+                            <div class="pdm-detail-item">
+                                <span class="pdm-detail-label">Surface</span>
+                                <span class="pdm-detail-val">{{ number_format($property->surface, 0, ',', ' ') }} m²</span>
+                            </div>
+                            @endif
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="pdm-actions">
+                            @php
+                                $hasPdmRequest = false;
+                                if (auth()->check()) {
+                                    $hasPdmRequest = $property->appointments()
+                                        ->where('user_id', auth()->id())
+                                        ->whereIn('status', ['pending', 'confirmed'])
+                                        ->exists();
+                                }
+                            @endphp
+
+                            @if($hasPdmRequest)
+                            <a href="{{ route('appointments.index') }}" class="pdm-btn-secondary">
+                                <i class="bi bi-calendar2-check"></i>
+                                Voir ma demande
+                            </a>
+                            @else
+                            <button type="button"
+                                    class="pdm-btn-primary"
+                                    data-bs-dismiss="modal"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#visitRequestModal{{ $property->id }}">
+                                <i class="bi bi-calendar-check"></i>
+                                Demande de visite
+                            </button>
+                            @endif
+
+                            <a href="{{ route('properties.show', $property->id) }}" class="pdm-btn-outline">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Page complète
+                            </a>
+                        </div>
+
+                    </div>{{-- /pdm-info --}}
+                </div>{{-- /pdm-layout --}}
+            </div>{{-- /pdm-content --}}
+        </div>
+    </div>
+    {{-- ══ FIN MODAL DÉTAIL ══ --}}
+
     @endforeach
 </div>
 
@@ -1132,7 +1938,7 @@
 </div>
 
 @else
-<!-- Empty State -->
+<!-- ── Empty State ── -->
 <div class="empty-state">
     <i class="bi bi-house-x"></i>
     <h3>Aucune propriété disponible</h3>
@@ -1143,7 +1949,10 @@
 </div>
 @endif
 
-<!-- Toast Notification -->
+
+<!-- ══════════════════════════════════════════
+     Toast Notification
+══════════════════════════════════════════ -->
 @if(session('success'))
 <div class="toast-notification">
     <div class="toast toast-custom show" role="alert">
@@ -1161,22 +1970,61 @@
 
 @endsection
 
+
 @section('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-hide toast after 5 seconds
-    const toasts = document.querySelectorAll('.toast');
-    toasts.forEach(toast => {
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 5000);
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* ── Auto-hide toast ── */
+    document.querySelectorAll('.toast').forEach(toast => {
+        setTimeout(() => toast.classList.remove('show'), 5000);
     });
 
-    // Set minimum date for date inputs
+    /* ── Min date pour les inputs date ── */
     const today = new Date().toISOString().split('T')[0];
     document.querySelectorAll('input[type="date"]').forEach(input => {
         input.min = today;
     });
+
+    /* ── Synchroniser les thumbnails PDM avec le carousel Bootstrap ── */
+    document.querySelectorAll('.property-detail-modal').forEach(modalEl => {
+        modalEl.addEventListener('show.bs.modal', function () {
+            const modalId   = this.id;
+            const propId    = modalId.replace('propertyDetailModal', '');
+            const carouselEl = document.getElementById('pdmCarousel' + propId);
+            if (!carouselEl) return;
+
+            const thumbs = this.querySelectorAll('.pdm-thumb');
+
+            /* Mise à jour des thumbs quand le slide change */
+            carouselEl.addEventListener('slid.bs.carousel', function (e) {
+                thumbs.forEach((t, i) => t.classList.toggle('active', i === e.to));
+
+                /* Scroll auto vers le thumb actif */
+                const activeThumb = thumbs[e.to];
+                if (activeThumb) {
+                    activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            });
+        });
+    });
+
+    /* ── Fermer la modal PDM puis ouvrir visitRequest sans délai visible ── */
+    document.querySelectorAll('.pdm-btn-primary[data-bs-toggle="modal"]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-bs-target');
+            // Le data-bs-dismiss="modal" sur le bouton s'occupe déjà de fermer la PDM
+            // On s'assure juste que Bootstrap a le temps de fermer avant d'ouvrir l'autre
+            setTimeout(() => {
+                const targetModal = document.querySelector(targetId);
+                if (targetModal) {
+                    const bsModal = new bootstrap.Modal(targetModal);
+                    bsModal.show();
+                }
+            }, 300);
+        });
+    });
+
 });
 </script>
 @endsection

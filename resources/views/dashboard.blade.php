@@ -114,7 +114,6 @@
   .btn-add:hover::before { opacity: 1; }
   .btn-add:hover { color: #080a0f; box-shadow: 0 0 22px rgba(197,160,85,0.3); }
 
-  /* Bouton télécharger PDF */
   .btn-pdf {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 11px 22px; border-radius: 50px;
@@ -252,7 +251,6 @@
 
   .chart-body { padding: 28px 24px; }
 
-  /* ── REVENUE CHART (Chart.js canvas) ── */
   .revenue-chart-wrap {
     position: relative;
     height: 260px;
@@ -426,7 +424,6 @@
 
   .act-time i { font-size: 11px; color: var(--d-gold); }
 
-  /* ── EMPTY STATE ── */
   .empty-state {
     text-align: center; padding: 56px 20px;
   }
@@ -481,7 +478,6 @@
       </a>
       @endif
 
-      {{-- ✅ Bouton PDF visible uniquement pour l'admin --}}
       @if(Auth::user()->role === 'admin')
       <a href="{{ route('dashboard.export.pdf') }}" class="btn-pdf">
         <i class="bi bi-file-earmark-pdf"></i>
@@ -492,80 +488,113 @@
   </div>
 
   {{-- ════════ STATS ════════ --}}
-  <div class="stats-grid">
 
-    @if(Auth::user()->role == 'admin')
-    <div class="stat-card c-blue">
-      <div class="stat-icon c-blue"><i class="bi bi-building"></i></div>
-      <div class="stat-meta">
-        <div class="stat-label">Total Propriétés</div>
-        <div class="stat-value">{{ $stats['totalProperties'] ?? 0 }}</div>
-      </div>
-    </div>
-
-    <div class="stat-card c-success">
-      <div class="stat-icon c-success"><i class="bi bi-check-circle"></i></div>
-      <div class="stat-meta">
-        <div class="stat-label">Disponibles</div>
-        <div class="stat-value">{{ $stats['availableProperties'] ?? 0 }}</div>
-      </div>
-    </div>
-
-    <div class="stat-card c-warning">
-      <div class="stat-icon c-warning"><i class="bi bi-cash-coin"></i></div>
-      <div class="stat-meta">
-        <div class="stat-label">Vendues</div>
-        <div class="stat-value">{{ $stats['soldProperties'] ?? 0 }}</div>
-      </div>
-    </div>
-
-    <div class="stat-card c-gold">
-      <div class="stat-icon c-gold"><i class="bi bi-house-check"></i></div>
-      <div class="stat-meta">
-        <div class="stat-label">Louées</div>
-        <div class="stat-value">{{ $stats['rentedProperties'] ?? 0 }}</div>
-      </div>
-    </div>
-    @endif
-
-    @if(Auth::user()->role == 'owner')
-    <div class="stat-card c-gold">
-      <div class="stat-icon c-gold"><i class="bi bi-house-door"></i></div>
-      <div class="stat-meta">
-        <div class="stat-label">Mes Propriétés</div>
-        <div class="stat-value">{{ $stats['myProperties'] ?? 0 }}</div>
-      </div>
-    </div>
-    @endif
-
-  </div>
-
-  {{-- ════════ PHP DATA ════════ --}}
   @php
+    // ✅ Clés normalisées — fonctionnent pour admin ET owner
     $totalProperties     = $stats['totalProperties']     ?? 0;
     $availableProperties = $stats['availableProperties'] ?? 0;
     $soldProperties      = $stats['soldProperties']      ?? 0;
     $rentedProperties    = $stats['rentedProperties']    ?? 0;
+  @endphp
 
-    $totalNonZero     = $totalProperties > 0 ? $totalProperties : 1;
-    $disponiblePct    = ($availableProperties / $totalNonZero) * 100;
-    $venduPct         = ($soldProperties      / $totalNonZero) * 100;
-    $louePct          = ($rentedProperties    / $totalNonZero) * 100;
+  <div class="stats-grid">
+
+    @if(Auth::user()->role == 'admin')
+      {{-- ── ADMIN : 4 cartes globales ── --}}
+      <div class="stat-card c-blue">
+        <div class="stat-icon c-blue"><i class="bi bi-building"></i></div>
+        <div class="stat-meta">
+          <div class="stat-label">Total Propriétés</div>
+          <div class="stat-value">{{ $totalProperties }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card c-success">
+        <div class="stat-icon c-success"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-meta">
+          <div class="stat-label">Disponibles</div>
+          <div class="stat-value">{{ $availableProperties }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card c-warning">
+        <div class="stat-icon c-warning"><i class="bi bi-cash-coin"></i></div>
+        <div class="stat-meta">
+          <div class="stat-label">Vendues</div>
+          <div class="stat-value">{{ $soldProperties }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card c-gold">
+        <div class="stat-icon c-gold"><i class="bi bi-house-check"></i></div>
+        <div class="stat-meta">
+          <div class="stat-label">Louées</div>
+          <div class="stat-value">{{ $rentedProperties }}</div>
+        </div>
+      </div>
+
+    @elseif(Auth::user()->role == 'owner')
+      {{-- ── OWNER : 4 cartes filtrées sur ses propriétés ── --}}
+      <div class="stat-card c-blue">
+        <div class="stat-icon c-blue"><i class="bi bi-house-door"></i></div>
+        <div class="stat-meta">
+          <div class="stat-label">Mes Propriétés</div>
+          <div class="stat-value">{{ $stats['myProperties'] ?? 0 }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card c-success">
+        <div class="stat-icon c-success"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-meta">
+          <div class="stat-label">Disponibles</div>
+          <div class="stat-value">{{ $stats['myAvailable'] ?? 0 }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card c-warning">
+        <div class="stat-icon c-warning"><i class="bi bi-cash-coin"></i></div>
+        <div class="stat-meta">
+          <div class="stat-label">Vendues</div>
+          <div class="stat-value">{{ $stats['mySold'] ?? 0 }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card c-gold">
+        <div class="stat-icon c-gold"><i class="bi bi-house-check"></i></div>
+        <div class="stat-meta">
+          <div class="stat-label">Louées</div>
+          <div class="stat-value">{{ $stats['myRented'] ?? 0 }}</div>
+        </div>
+      </div>
+    @endif
+
+  </div>
+
+  {{-- ════════ PHP DATA pour le donut ════════ --}}
+  @php
+    $totalNonZero  = $totalProperties > 0 ? $totalProperties : 1;
+    $disponiblePct = ($availableProperties / $totalNonZero) * 100;
+    $venduPct      = ($soldProperties      / $totalNonZero) * 100;
+    $louePct       = ($rentedProperties    / $totalNonZero) * 100;
 
     $disponibleDeg = ($disponiblePct / 100) * 360;
     $venduDeg      = $disponibleDeg + (($venduPct / 100) * 360);
   @endphp
 
-  {{-- ════════ CHARTS ════════ --}}
-  @if(Auth::user()->role == 'admin')
+  {{-- ════════ CHARTS — visibles pour admin ET owner ════════ --}}
+  @if(in_array(Auth::user()->role, ['admin', 'owner']))
   <div class="charts-grid">
 
-    {{-- ✅ Graphique historique de revenus (remplace "Propriétés par ville") --}}
+    {{-- Graphique revenus mensuels --}}
     <div class="chart-card">
       <div class="chart-header">
         <h3 class="chart-title">
           <i class="bi bi-graph-up-arrow"></i>
-          Historique de revenus
+          @if(Auth::user()->role === 'admin')
+            Historique de revenus
+          @else
+            Mes revenus (propriétés vendues / louées)
+          @endif
         </h3>
         <span class="chart-badge">{{ now()->year }}</span>
       </div>
@@ -576,7 +605,7 @@
       </div>
     </div>
 
-    {{-- Donut chart --}}
+    {{-- Donut répartition des statuts --}}
     <div class="chart-card">
       <div class="chart-header">
         <h3 class="chart-title">
@@ -680,17 +709,14 @@
 @endsection
 
 @section('scripts')
-{{-- Chart.js CDN --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-@if(Auth::user()->role == 'admin')
+@if(in_array(Auth::user()->role, ['admin', 'owner']))
 <script>
-  // ✅ Données de revenus mensuels passées depuis le contrôleur
   const revenueData = @json($monthlyRevenue ?? array_fill(0, 12, 0));
 
   const ctx = document.getElementById('revenueChart').getContext('2d');
 
-  // Dégradé doré sous la courbe
   const gradient = ctx.createLinearGradient(0, 0, 0, 260);
   gradient.addColorStop(0,   'rgba(197,160,85,0.35)');
   gradient.addColorStop(1,   'rgba(197,160,85,0.02)');
@@ -740,11 +766,9 @@
         },
         y: {
           min: 0,
-          max: 100000,
           ticks: {
             color: '#50535c',
             font: { size: 11 },
-            stepSize: 20000,
             callback: val => val.toLocaleString('fr-MG') + ' Ar'
           },
           grid: { color: 'rgba(255,255,255,0.04)' },

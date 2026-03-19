@@ -14,19 +14,17 @@ class NotificationController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         $query = Notification::with(['emetteur', 'destinataire'])
-            ->where(function($q) use ($user) {
-                // Pour les inscriptions, seul l'admin peut les voir
+            ->where(function ($q) use ($user) {
                 if ($user->role === 'admin') {
                     $q->where('type', 'inscription')
-                      ->orWhere(function($sub) use ($user) {
+                      ->orWhere(function ($sub) use ($user) {
                           $sub->where('id_destinataire', $user->id)
                               ->orWhere('id_emetteur', $user->id);
                       });
                 } else {
-                    // Pour les autres utilisateurs, seulement leurs notifications
-                    $q->where(function($sub) use ($user) {
+                    $q->where(function ($sub) use ($user) {
                         $sub->where('id_destinataire', $user->id)
                             ->orWhere('id_emetteur', $user->id);
                     });
@@ -41,36 +39,44 @@ class NotificationController extends Controller
     /**
      * Récupérer les notifications non lues en temps réel (AJAX)
      */
-    public function getUnreadNotifications()
-    {
-        $user = Auth::user();
-        
-        $notifications = Notification::with(['emetteur'])
-            ->where(function($q) use ($user) {
-                if ($user->role === 'admin') {
-                    $q->where('type', 'inscription')
-                      ->orWhere(function($sub) use ($user) {
-                          $sub->where('id_destinataire', $user->id)
-                              ->orWhere('id_emetteur', $user->id);
-                      });
-                } else {
-                    $q->where('id_destinataire', $user->id)
-                      ->orWhere('id_emetteur', $user->id);
-                }
-            })
-            ->where('read', false)
-            ->orderBy('time', 'desc')
-            ->limit(10)
-            ->get();
+   public function getUnreadNotifications()
+{
+    $user = Auth::user();
 
-        $count = $notifications->count();
+    $notifications = Notification::with(['emetteur'])
+        ->where(function ($q) use ($user) {
+            if ($user->role === 'admin') {
+                $q->where('type', 'inscription')
+                  ->orWhere(function ($sub) use ($user) {
+                      $sub->where('id_destinataire', $user->id)
+                          ->orWhere('id_emetteur', $user->id);
+                  });
+            } else {
+                $q->where('id_destinataire', $user->id)
+                  ->orWhere('id_emetteur', $user->id);
+            }
+        })
+        ->where('read', false)
+        ->orderBy('time', 'desc')
+        ->limit(10)
+        ->get();
 
-        return response()->json([
-            'notifications' => $notifications,
-            'count' => $count,
-            'html' => view('notifications.partials.notification-items', compact('notifications'))->render()
-        ]);
-    }
+    // ✅ Normalise les données pour le JS
+    $data = $notifications->map(function ($n) {
+        return [
+            'id'      => $n->getKey(),   // récupère la clé primaire quelle que soit son nom
+            'message' => $n->message,
+            'type'    => $n->type,
+            'read'    => $n->read,
+            'time'    => $n->time ?? $n->created_at,
+        ];
+    });
+
+    return response()->json([
+        'notifications' => $data,
+        'count'         => $notifications->count(),
+    ]);
+}
 
     /**
      * Marquer une notification comme lue
@@ -78,15 +84,17 @@ class NotificationController extends Controller
     public function markAsRead($id)
     {
         $notification = Notification::findOrFail($id);
-        
-        // Vérifier les permissions
-        $user = Auth::user();
-        
+        $user         = Auth::user();
+
         if ($notification->type === 'inscription' && $user->role !== 'admin') {
             return response()->json(['error' => 'Non autorisé'], 403);
         }
-        
-        if ($notification->id_destinataire != $user->id && $notification->id_emetteur != $user->id && $user->role !== 'admin') {
+
+        if (
+            $notification->id_destinataire != $user->id &&
+            $notification->id_emetteur     != $user->id &&
+            $user->role !== 'admin'
+        ) {
             return response()->json(['error' => 'Non autorisé'], 403);
         }
 
@@ -94,7 +102,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification marquée comme lue'
+            'message' => 'Notification marquée comme lue',
         ]);
     }
 
@@ -104,11 +112,11 @@ class NotificationController extends Controller
     public function markAllAsRead()
     {
         $user = Auth::user();
-        
-        $query = Notification::where(function($q) use ($user) {
+
+        Notification::where(function ($q) use ($user) {
             if ($user->role === 'admin') {
                 $q->where('type', 'inscription')
-                  ->orWhere(function($sub) use ($user) {
+                  ->orWhere(function ($sub) use ($user) {
                       $sub->where('id_destinataire', $user->id)
                           ->orWhere('id_emetteur', $user->id);
                   });
@@ -122,27 +130,49 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Toutes les notifications ont été marquées comme lues'
+            'message' => 'Toutes les notifications ont été marquées comme lues',
         ]);
     }
+
+    /**
+     * Supprimer une notification
+     */
+    public function destroy($id)
+{
+    $notification = Notification::findOrFail($id);
+    $user         = Auth::user();
+
+    if (
+        $notification->id_destinataire != $user->id &&
+        $notification->id_emetteur     != $user->id &&
+        $user->role !== 'admin'
+    ) {
+        return response()->json(['error' => 'Non autorisé'], 403);
+    }
+
+    $notification->delete();
+
+    return response()->json(['success' => true, 'message' => 'Notification supprimée']);
+}
+
+    /* ═══════════════════════════════════════════════════════
+       MÉTHODES STATIQUES UTILITAIRES
+    ═══════════════════════════════════════════════════════ */
 
     /**
      * Créer une notification (méthode utilitaire)
      */
     public static function createNotification($data)
     {
-        return Notification::create([
+        $notification = Notification::create([
             'id_destinataire' => $data['destinataire_id'] ?? null,
-            'id_emetteur' => $data['emetteur_id'] ?? Auth::id(),
-            'message' => $data['message'],
-            'type' => $data['type'],
-            'read' => false
+            'id_emetteur'     => $data['emetteur_id']     ?? Auth::id(),
+            'message'         => $data['message'],
+            'type'            => $data['type'],
+            'read'            => false,
         ]);
-        broadcast(new \App\Events\NotificationCreated(
-    $data['message'],
-    $data['type'],
-    $data['destinataire_id']
-));
+
+        return $notification;
     }
 
     /**
@@ -151,13 +181,13 @@ class NotificationController extends Controller
     public static function newInscription($user)
     {
         $admins = \App\Models\User::where('role', 'admin')->get();
-        
+
         foreach ($admins as $admin) {
             self::createNotification([
                 'destinataire_id' => $admin->id,
-                'emetteur_id' => $user->id,
-                'message' => "Nouvelle inscription : {$user->name} ({$user->email})",
-                'type' => 'inscription'
+                'emetteur_id'     => $user->id,
+                'message'         => "Nouvelle inscription : {$user->name} ({$user->email})",
+                'type'            => 'inscription',
             ]);
         }
     }
@@ -167,16 +197,15 @@ class NotificationController extends Controller
      */
     public static function newProduit($produit, $user)
     {
-        // Notifier tous les utilisateurs intéressés ou admin
         $users = \App\Models\User::where('role', '!=', 'user')->get();
-        
+
         foreach ($users as $destinataire) {
             if ($destinataire->id != $user->id) {
                 self::createNotification([
                     'destinataire_id' => $destinataire->id,
-                    'emetteur_id' => $user->id,
-                    'message' => "Nouveau produit ajouté : {$produit->nom}",
-                    'type' => 'new_produits'
+                    'emetteur_id'     => $user->id,
+                    'message'         => "Nouveau produit ajouté : {$produit->nom}",
+                    'type'            => 'new_produits',
                 ]);
             }
         }
@@ -187,12 +216,11 @@ class NotificationController extends Controller
      */
     public static function newRendezVous($rendezVous, $user)
     {
-        // Notifier le propriétaire du bien
         self::createNotification([
             'destinataire_id' => $rendezVous->property->user_id,
-            'emetteur_id' => $user->id,
-            'message' => "Nouvelle demande de rendez-vous pour {$rendezVous->property->titre}",
-            'type' => 'new_rendez_vous'
+            'emetteur_id'     => $user->id,
+            'message'         => "Nouvelle demande de rendez-vous pour {$rendezVous->property->titre}",
+            'type'            => 'new_rendez_vous',
         ]);
     }
 
@@ -203,9 +231,9 @@ class NotificationController extends Controller
     {
         self::createNotification([
             'destinataire_id' => $rendezVous->user_id,
-            'emetteur_id' => $user->id,
-            'message' => "Votre rendez-vous pour {$rendezVous->property->titre} a été confirmé",
-            'type' => 'rendez_vous_confirme'
+            'emetteur_id'     => $user->id,
+            'message'         => "Votre rendez-vous pour {$rendezVous->property->titre} a été confirmé",
+            'type'            => 'rendez_vous_confirme',
         ]);
     }
 
@@ -218,12 +246,12 @@ class NotificationController extends Controller
         if ($raison) {
             $message .= " : {$raison}";
         }
-        
+
         self::createNotification([
             'destinataire_id' => $rendezVous->user_id,
-            'emetteur_id' => $user->id,
-            'message' => $message,
-            'type' => 'rendez_vous_rejete'
+            'emetteur_id'     => $user->id,
+            'message'         => $message,
+            'type'            => 'rendez_vous_rejete',
         ]);
     }
 }

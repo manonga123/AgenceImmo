@@ -29,10 +29,12 @@ class DashboardController extends Controller
         $recentActivities   = $this->getRecentActivities($user);
         $recentAppointments = $this->getRecentAppointments($user);
 
-        // ✅ Revenus mensuels pour le graphique Chart.js (admin uniquement)
+        // ✅ Revenus mensuels filtrés selon le rôle
         $monthlyRevenue = [];
         if ($user->role === 'admin') {
             $monthlyRevenue = $this->getMonthlyRevenue();
+        } elseif ($user->role === 'owner') {
+            $monthlyRevenue = $this->getOwnerMonthlyRevenue($user->id);
         }
 
         $generatedAt = now()->format('d/m/Y à H:i');
@@ -48,49 +50,48 @@ class DashboardController extends Controller
     }
 
     /**
-     * Exporter les statistiques en PDF
-     * ✅ Accessible uniquement via la route protégée (admin)
+     * Exporter les statistiques en PDF (admin uniquement)
      */
-        public function exportPdf()
-        {
-            if (Auth::user()->role !== 'admin') {
-                abort(403);
-            }
-
-            $user  = Auth::user();
-            $stats = $this->getAdminStats();
-
-            $recentActivities   = $this->getRecentActivities($user);
-            $recentAppointments = $this->getRecentAppointments($user);
-            $monthlyRevenue     = $this->getMonthlyRevenue();
-            $generatedAt        = now()->format('d/m/Y à H:i');
-
-            $totalUsers    = User::where('role', 'user')->count();
-            $totalOwners   = User::where('role', 'owner')->count();
-            $totalAllUsers = $totalUsers + $totalOwners;
-
-            // ✅ Calcul des valeurs par statut ici, pas dans la vue
-            $dispoVal = Property::where('status', 'disponible')->sum('price');
-            $venduVal = Property::where('status', 'vendu')->sum('price');
-            $loueVal  = Property::where('status', 'loué')->sum('price');
-
-            $pdf = Pdf::loadView('pdf.dashboard-stats', compact(
-                'stats',
-                'monthlyRevenue',
-                'recentActivities',
-                'recentAppointments',
-                'user',
-                'generatedAt',
-                'totalUsers',
-                'totalOwners',
-                'totalAllUsers',
-                'dispoVal',   // ✅
-                'venduVal',   // ✅
-                'loueVal'     // ✅
-            ))->setPaper('a4', 'portrait');
-
-            return $pdf->download('statistiques-dashboard-' . now()->format('Y-m-d') . '.pdf');
+    public function exportPdf()
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
         }
+
+        $user  = Auth::user();
+        $stats = $this->getAdminStats();
+
+        $recentActivities   = $this->getRecentActivities($user);
+        $recentAppointments = $this->getRecentAppointments($user);
+        $monthlyRevenue     = $this->getMonthlyRevenue();
+        $generatedAt        = now()->format('d/m/Y à H:i');
+
+        $totalUsers    = User::where('role', 'user')->count();
+        $totalOwners   = User::where('role', 'owner')->count();
+        $totalAllUsers = $totalUsers + $totalOwners;
+
+        $dispoVal = Property::where('status', 'disponible')->sum('price');
+        $venduVal = Property::where('status', 'vendu')->sum('price');
+        $loueVal  = Property::where('status', 'loué')->sum('price');
+
+        $pdf = Pdf::loadView('pdf.dashboard-stats', compact(
+            'stats',
+            'monthlyRevenue',
+            'recentActivities',
+            'recentAppointments',
+            'user',
+            'generatedAt',
+            'totalUsers',
+            'totalOwners',
+            'totalAllUsers',
+            'dispoVal',
+            'venduVal',
+            'loueVal'
+        ))->setPaper('a4', 'portrait');
+
+        return $pdf->download('statistiques-dashboard-' . now()->format('Y-m-d') . '.pdf');
+    }
+
     // =============================================
     // STATISTIQUES ADMIN
     // =============================================
@@ -150,6 +151,12 @@ class DashboardController extends Controller
             ->whereYear('created_at', now()->year)
             ->count();
 
+        // ✅ Ajout des clés normalisées pour la vue (donut chart)
+        $totalProperties     = $myProperties;
+        $availableProperties = $myAvailable;
+        $soldProperties      = $mySold;
+        $rentedProperties    = $myRented;
+
         return compact(
             'myProperties',
             'myAvailable',
@@ -159,17 +166,18 @@ class DashboardController extends Controller
             'myPendingVisits',
             'myConfirmedVisits',
             'myTotalAppointments',
-            'myNewThisMonth'
+            'myNewThisMonth',
+            // ✅ Clés normalisées pour la vue partagée
+            'totalProperties',
+            'availableProperties',
+            'soldProperties',
+            'rentedProperties'
         );
     }
 
     // =============================================
-    // ✅ REVENUS MENSUELS (année en cours)
-    // Somme des prix des propriétés vendues/louées par mois
-    // Adaptez la logique selon votre modèle de revenus réel
+    // REVENUS MENSUELS — ADMIN (table Revenue globale)
     // =============================================
-  // =============================================
-
     private function getMonthlyRevenue(): array
     {
         $revenue = \App\Models\Revenue::latest()->first();
@@ -192,6 +200,31 @@ class DashboardController extends Controller
             (float) $revenue->novembre,
             (float) $revenue->decembre,
         ];
+    }
+
+    // =============================================
+    // ✅ REVENUS MENSUELS — OWNER
+    // Somme des prix des propriétés vendues/louées
+    // de l'owner, regroupées par mois (année en cours)
+    // =============================================
+    private function getOwnerMonthlyRevenue(int $ownerId): array
+    {
+        $rows = Property::where('owner_id', $ownerId)
+            ->whereIn('status', ['vendu', 'loué'])
+            ->whereYear('updated_at', now()->year)
+            ->select(
+                DB::raw('MONTH(updated_at) as month'),
+                DB::raw('SUM(price) as total')
+            )
+            ->groupBy(DB::raw('MONTH(updated_at)'))
+            ->pluck('total', 'month');
+
+        $result = array_fill(0, 12, 0);
+        foreach ($rows as $month => $total) {
+            $result[$month - 1] = (float) $total;
+        }
+
+        return $result;
     }
 
     // =============================================

@@ -14,25 +14,33 @@ class SettingsController extends Controller
 {
     /**
      * Afficher la page des paramètres
+     * ✅ Redirige vers la bonne vue selon le rôle (admin/agent → settings.index, user → settings.user)
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+
         $data = [
-            'user' => Auth::user(),
+            'user' => $user,
         ];
 
-        if (auth()->user()->role === 'admin') {
+        if ($user->role === 'admin') {
             $data['agency'] = Agency::firstOrCreate([], [
                 'name'  => config('app.name'),
                 'email' => config('mail.from.address'),
             ]);
 
-            $data['users'] = User::where('id', '!=', auth()->id())
+            $data['users'] = User::where('id', '!=', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->paginate(10, ['*'], 'users_page');
         }
 
         $data['activeSessions'] = $this->getActiveSessions();
+
+        // ✅ Redirection vers la vue correcte selon le rôle
+        if ($user->role === 'user') {
+            return view('settings.user', $data);
+        }
 
         return view('settings.index', $data);
     }
@@ -42,7 +50,6 @@ class SettingsController extends Controller
      */
     public function updateProfile(Request $request)
     {
-        // ✅ Utiliser find() pour avoir un modèle Eloquent frais et sauvegardable
         $user = User::find(Auth::id());
 
         $validated = $request->validate([
@@ -72,7 +79,6 @@ class SettingsController extends Controller
                             ->withInput();
                     }
 
-                    // Supprimer l'ancien avatar s'il existe
                     if ($user->avatar_path && Storage::disk('public')->exists($user->avatar_path)) {
                         Storage::disk('public')->delete($user->avatar_path);
                     }
@@ -81,8 +87,6 @@ class SettingsController extends Controller
 
                     $path = 'users/avatars/avatar_' . $user->id . '_' . time() . '.jpg';
                     Storage::disk('public')->put($path, $imageData);
-
-                    // ✅ FIX : sauvegarder avatar_path directement en BDD ici
                     $user->avatar_path = $path;
                 }
             }
@@ -96,20 +100,18 @@ class SettingsController extends Controller
 
                 $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $path     = $file->storeAs('users/avatars', $filename, 'public');
-
-                // ✅ FIX : sauvegarder avatar_path directement en BDD ici
                 $user->avatar_path = $path;
             }
 
-            // Retirer les champs non-BDD de $validated
             unset($validated['avatar'], $validated['avatar_base64']);
 
-            // ✅ fill() + save() sauvegarde TOUT en une seule requête,
-            //    y compris avatar_path assigné juste au-dessus
             $user->fill($validated);
             $user->save();
 
-            return redirect()->route('settings.index', ['tab' => 'profile'])
+            // ✅ Redirige vers la bonne route selon le rôle après mise à jour du profil
+            $redirectRoute = ($user->role === 'user') ? 'settings.user' : 'settings.index';
+
+            return redirect()->route($redirectRoute, ['tab' => 'profile'])
                 ->with('success', 'Profil mis à jour avec succès.');
 
         } catch (\Exception $e) {

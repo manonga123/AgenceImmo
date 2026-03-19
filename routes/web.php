@@ -138,47 +138,42 @@ Route::patch('/appointments/{appointment}/reject', [AppointmentController::class
     Route::get('/appointments/pending', [AppointmentController::class, 'pendingRequests'])
         ->name('appointments.pending');
    
-        
-    //settings
-    Route::get('/', [SettingsController::class, 'index'])->name('settings.index');
-    
-    // Profil
-    
-     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
-
-    // Mise à jour du profil
+   Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+ 
+    // ── Page paramètres pour utilisateur simple (role = user) ───────────
+    // ✅ Route manquante ajoutée — corrige l'erreur RouteNotFoundException
+    Route::get('/settings/user', [SettingsController::class, 'index'])->name('settings.user');
+ 
+    // ── Profil ──────────────────────────────────────────────────────────
     Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
-
-    // Mot de passe
+ 
+    // ── Mot de passe ────────────────────────────────────────────────────
     Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
-
-    // Notifications
+ 
+    // ── Notifications ───────────────────────────────────────────────────
     Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications.update');
-
-    // Export RGPD
+ 
+    // ── Export RGPD ─────────────────────────────────────────────────────
     Route::get('/settings/export', [SettingsController::class, 'exportData'])->name('settings.export');
-
-    // Suppression de compte
+ 
+    // ── Suppression de compte ───────────────────────────────────────────
     Route::delete('/settings/account', [SettingsController::class, 'deleteAccount'])->name('settings.account.delete');
-
-    // Sessions
+ 
+    // ── Sessions ────────────────────────────────────────────────────────
     Route::delete('/settings/sessions/{sessionId}', [SettingsController::class, 'logoutSession'])->name('settings.sessions.logout');
-
-    // Admin uniquement
+ 
+    // ── Propriétés ──────────────────────────────────────────────────────
+    Route::put('/settings/properties', [SettingsController::class, 'updateProperties'])->name('settings.properties.update');
+ 
+    // ── Admin uniquement ────────────────────────────────────────────────
     Route::put('/settings/agency',      [SettingsController::class, 'updateAgency'])->name('settings.agency.update');
     Route::put('/settings/commissions', [SettingsController::class, 'updateCommissions'])->name('settings.commissions.update');
-
-    // Owner uniquement
-    Route::put('/settings/bank',             [SettingsController::class, 'updateBank'])->name('settings.bank.update');
-    Route::put('/settings/owner-preferences',[SettingsController::class, 'updateOwnerPreferences'])->name('settings.owner.update');
  
-    
-    // Propriétés
-    Route::put('/properties', [SettingsController::class, 'updateProperties'])->name('settings.properties.update');
-    
-    // Propriétaire
-    Route::put('/bank', [SettingsController::class, 'updateBank'])->name('settings.bank.update');
-    Route::put('/owner/preferences', [SettingsController::class, 'updateOwnerPreferences'])->name('settings.owner.preferences.update');
+    // ── Owner uniquement ────────────────────────────────────────────────
+    Route::put('/settings/bank',              [SettingsController::class, 'updateBank'])->name('settings.bank.update');
+    Route::put('/settings/owner-preferences', [SettingsController::class, 'updateOwnerPreferences'])->name('settings.owner.update');
+     
+   
     ///dashboard
       Route::get('/dashboard',            [DashboardController::class, 'index'])->name('dashboard');
           Route::get('/dashboard/export-pdf', [DashboardController::class, 'exportPdf'])
@@ -186,20 +181,22 @@ Route::patch('/appointments/{appointment}/reject', [AppointmentController::class
     
 
     // Notifications
-        Route::get('/notifications', [NotificationController::class, 'index'])
-        ->name('notifications.index');
-    
-    // Récupérer les notifications non lues (AJAX)
-    Route::get('/notifications/unread', [NotificationController::class, 'getUnreadNotifications'])
-        ->name('notifications.unread');
-    
-    // Marquer une notification comme lue
-    Route::post('/notifications/{id}/toggle-read', [NotificationController::class, 'markAsRead'])
-        ->name('notifications.toggle-read');
-    
-    // Marquer toutes les notifications comme lues
-    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
-        ->name('notifications.mark-all-read');
+      // ✅ Routes statiques en PREMIER
+Route::get('/notifications', [NotificationController::class, 'index'])
+    ->name('notifications.index');
+
+Route::get('/notifications/unread', [NotificationController::class, 'getUnreadNotifications'])
+    ->name('notifications.unread');
+
+Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
+    ->name('notifications.mark-all-read');
+
+// ✅ Routes avec {id} en DERNIER
+Route::post('/notifications/{id}/toggle-read', [NotificationController::class, 'markAsRead'])
+    ->name('notifications.toggle-read');
+
+Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])
+    ->name('notifications.destroy');
 
 });
 
